@@ -267,7 +267,7 @@ public class GraphView {
 
 			if (node.tags().contains("XCSG.ControlFlowLoopCondition")
 					|| node.tags().contains("XCSG.ControlFlowIfCondition")) {
-				dataJson.addProperty("backgroundcolor", "#e8ae58");
+				dataJson.addProperty("backgroundcolor", "#ff00ff");//#e8ae58
 				// dataJson.addProperty("shape", "diamond");
 			} else {
 				dataJson.addProperty("backgroundcolor", "#34c2db");

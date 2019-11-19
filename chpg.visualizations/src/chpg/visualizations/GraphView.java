@@ -52,7 +52,7 @@ public class GraphView {
 		debug = enabled;
 	}
 
-	public static final int DEFAULT_VERTICAL_SIZE = 600;
+	public static final int DEFAULT_VERTICAL_SIZE = 1000;
 	public static final int DEFAULT_NAVIGATOR_NODES_SIZE = 20;
 	public static final boolean DEFAULT_PANZOOM = true;
 
@@ -74,28 +74,28 @@ public class GraphView {
 
 	public static Path createHTML(Graph graph) throws IOException {
 		Path tempDirectory = Files.createTempDirectory("graph-viewer");
-		return createHTML(graph, tempDirectory, "", DEFAULT_VERTICAL_SIZE, true, Layout.DAGRE, Menu.NONE,
+		return createHTML(graph, tempDirectory, "", DEFAULT_VERTICAL_SIZE, true, Layout.DAGRE, Menu.TEXT,
 				PanZoom.ENABLED, Navigator.DEFAULT);
 	}
 
 	public static Path createHTML(Graph graph, Path directoryPath) throws IOException {
-		return createHTML(graph, directoryPath, "", DEFAULT_VERTICAL_SIZE, true, Layout.DAGRE, Menu.NONE,
+		return createHTML(graph, directoryPath, "", DEFAULT_VERTICAL_SIZE, true, Layout.DAGRE, Menu.TEXT,
 				PanZoom.ENABLED, Navigator.DEFAULT);
 	}
 
 	public static Path createHTML(Graph graph, Path directoryPath, String name) throws IOException {
-		return createHTML(graph, directoryPath, name, DEFAULT_VERTICAL_SIZE, true, Layout.DAGRE, Menu.NONE,
+		return createHTML(graph, directoryPath, name, DEFAULT_VERTICAL_SIZE, true, Layout.DAGRE, Menu.TEXT,
 				PanZoom.ENABLED, Navigator.DEFAULT);
 	}
 
 	public static Path createHTML(Graph graph, Path directoryPath, String name, boolean extend) throws IOException {
-		return createHTML(graph, directoryPath, name, DEFAULT_VERTICAL_SIZE, extend, Layout.DAGRE, Menu.NONE,
+		return createHTML(graph, directoryPath, name, DEFAULT_VERTICAL_SIZE, extend, Layout.DAGRE, Menu.TEXT,
 				PanZoom.ENABLED, Navigator.DEFAULT);
 	}
 
 	public static Path createHTML(Graph graph, Path directoryPath, String name, boolean extend, int verticalSize)
 			throws IOException {
-		return createHTML(graph, directoryPath, name, verticalSize, extend, Layout.DAGRE, Menu.NONE, PanZoom.ENABLED,
+		return createHTML(graph, directoryPath, name, verticalSize, extend, Layout.DAGRE, Menu.TEXT, PanZoom.ENABLED,
 				Navigator.DEFAULT);
 	}
 
@@ -183,9 +183,106 @@ public class GraphView {
 		if (menu.equals(Menu.TEXT)) {
 			sourcesCSS.add(contextMenuCSS);
 			sourcesJS.add(contextMenuJS);
-
 			// TODO set context menu options
-			htmlContents = htmlContents.replace("TEMPLATE_OPTIONS_CONTEXT_TEXT", "// TODO: TEXT MENU OPTIONS");
+			// Experimenting
+			//Will create Options for menu, but just starting with basic elements JsonArray MenuOptions = new JsonArray();
+			JsonArray itemArray = createMenuJson();
+			JsonObject contextMenuJson = new JsonObject();
+			contextMenuJson.add("menuItems", itemArray);
+			System.out.println("cy.contextMenus({\n"+contextMenuJson.toString()+"});");
+			htmlContents = htmlContents.replace("TEMPLATE_OPTIONS_CONTEXT_TEXT", "cy.contextMenus(\n"+contextMenuJson.toString()+");");
+			htmlContents = htmlContents.replace("TEMPLATE_OPTIONS_CONTEXT_TEXT", "cy.contextMenus({\n" + 
+					"                                    menuItems: [\n" + 
+					"                                        {\n" + 
+					"                                            id: 'remove',\n" + 
+					"                                            content: 'remove',\n" + 
+					"                                            tooltipText: 'remove',\n" + 
+					"                                            image: {src : \"remove.svg\", width : 12, height : 12, x : 6, y : 4},\n" + 
+					"                                            selector: 'node, edge',\n" + 
+					"                                            onClickFunction: function (event) {\n" + 
+					"                                              var target = event.target || event.cyTarget;\n" + 
+					"                                              target.remove();\n" + 
+					"                                            },\n" + 
+					"                                            hasTrailingDivider: true\n" + 
+					"                                          },\n" + 
+					"                                          {\n" + 
+					"                                            id: 'hide',\n" + 
+					"                                            content: 'hide',\n" + 
+					"                                            tooltipText: 'hide',\n" + 
+					"                                            selector: '*',\n" + 
+					"                                            onClickFunction: function (event) {\n" + 
+					"                                              var target = event.target || event.cyTarget;\n" + 
+					"                                              target.hide();\n" + 
+					"                                            },\n" + 
+					"                                            disabled: false\n" + 
+					"                                          },\n" + 
+					"                                          {\n" + 
+					"                                            id: 'add-node',\n" + 
+					"                                            content: 'add node',\n" + 
+					"                                            tooltipText: 'add node',\n" + 
+					"                                            image: {src : \"add.svg\", width : 12, height : 12, x : 6, y : 4},\n" + 
+					"                                            coreAsWell: true,\n" + 
+					"                                            onClickFunction: function (event) {\n" + 
+					"                                              var data = {\n" + 
+					"                                                  group: 'nodes'\n" + 
+					"                                              };\n" + 
+					"                                              \n" + 
+					"                                              var pos = event.position || event.cyPosition;\n" + 
+					"                                              \n" + 
+					"                                              cy.add({\n" + 
+					"                                                  data: data,\n" + 
+					"                                                  position: {\n" + 
+					"                                                      x: pos.x,\n" + 
+					"                                                      y: pos.y\n" + 
+					"                                                  }\n" + 
+					"                                              });\n" + 
+					"                                            }\n" + 
+					"                                          },\n" + 
+					"                                          {\n" + 
+					"                                            id: 'remove-selected',\n" + 
+					"                                            content: 'remove selected',\n" + 
+					"                                            tooltipText: 'remove selected',\n" + 
+					"                                            image: {src : \"remove.svg\", width : 12, height : 12, x : 6, y : 6},\n" + 
+					"                                            coreAsWell: true,\n" + 
+					"                                            onClickFunction: function (event) {\n" + 
+					"                                              cy.$(':selected').remove();\n" + 
+					"                                            }\n" + 
+					"                                          },\n" + 
+					"                                          {\n" + 
+					"                                            id: 'select-all-nodes',\n" +
+					"									         content: 'select all nodes',\n" +
+					"									         selector: 'node',\n" +
+					"									         show: true,\n" +
+					"									         onClickFunction: function (event) {\n" +
+					"									           selectAllOfTheSameType(event.target || event.cyTarget);\n" +
+					"											   \n" +
+					"									           contextMenu.hideMenuItem('select-all-nodes');\n" +
+					"									           contextMenu.showMenuItem('unselect-all-nodes');\n" +
+					"									         }\n" +
+					"                                          },\n" +
+					"										   {\n" +
+					"										     id: 'unselect-all-nodes',\n" +
+					"										     content: 'unselect all nodes',\n" +
+					"										     selector: 'node',\n" +
+					"										     show: false,\n" +
+					"										     onClickFunction: function (event) {\n" +
+					"										       unselectAllOfTheSameType(event.target || event.cyTarget);\n" +
+					"											  \n" +
+					"										       contextMenu.showMenuItem('select-all-nodes');\n" +
+					"										       contextMenu.hideMenuItem('unselect-all-nodes');\n" +
+					"										     }\n" +
+					"										   },\n" +	
+					"                                          {\n" + 
+					"                                            id: 'select-all-edges',\n" + 
+					"                                            content: 'select all edges',\n" + 
+					"                                            tooltipText: 'select all edges',\n" + 
+					"                                            selector: 'edge',\n" + 
+					"                                            onClickFunction: function (event) {\n" + 
+					"                                              selectAllOfTheSameType(event.target || event.cyTarget);\n" + 
+					"                                            }\n" + 
+					"                                          }\n" + 
+					"                                        ]\n" + 
+					"                                      });");
 		}
 
 		// Add sources for wheel menu
@@ -267,11 +364,14 @@ public class GraphView {
 
 			if (node.tags().contains("XCSG.ControlFlowLoopCondition")
 					|| node.tags().contains("XCSG.ControlFlowIfCondition")) {
-				dataJson.addProperty("backgroundcolor", "#ff00ff");//#e8ae58
-				// dataJson.addProperty("shape", "diamond");
+				// Set diamond shape for loop conditions and if statements
+				dataJson.addProperty("shape", "diamond");
+				// Fix width issue for diamond nodes
+				dataJson.addProperty("width", nodeName.length() * 10);	
 			} else {
-				dataJson.addProperty("backgroundcolor", "#34c2db");
-				// dataJson.addProperty("shape", "round-rectangle");
+				// Set default node style
+				dataJson.addProperty("shape", "round-rectangle");
+				dataJson.addProperty("width", "label");
 			}
 
 			// If extend is set to true and this node has, add parent attribute to data and
@@ -320,6 +420,33 @@ public class GraphView {
 		}
 
 		return edgesJsonArray;
+	}
+	
+	public static JsonArray createMenuJson() {
+		JsonArray menuArrayJson = new JsonArray();
+		JsonObject itemHide = new JsonObject();
+		itemHide.addProperty("id","hide");
+		itemHide.addProperty("content", "hide");
+		itemHide.addProperty("tooltipText","hide");
+		itemHide.addProperty("selector", "*");
+		itemHide.addProperty("onClickFunction", "function ( event ) { var target = event.target || event.cyTarget; target.hide(); }");
+		JsonObject colorBlue = new JsonObject();
+		colorBlue.addProperty("id","changeBlue");
+		colorBlue.addProperty("content", "Change to Blue");
+		colorBlue.addProperty("tooltipText","Change to Blue");
+		colorBlue.addProperty("selector", "*");
+		colorBlue.addProperty("onClickFunction", "function ( event ) { var target = event.target || event.cyTarget; target.css(\"background-color\", \"blue\") ; }");
+		JsonObject colorWhite = new JsonObject();
+		colorWhite.addProperty("id","changeWhite");
+		colorWhite.addProperty("content", "Change to White");
+		colorWhite.addProperty("tooltipText","Change to White");
+		colorWhite.addProperty("selector", "*");
+		colorWhite.addProperty("onClickFunction", "function ( event ) { var target = event.target || event.cyTarget; target.css(\"background-color\", \"white\") ; }");
+		menuArrayJson.add(itemHide);
+		menuArrayJson.add(colorBlue);
+		menuArrayJson.add(colorWhite);
+//		System.out.println(menuArrayJson);
+		return menuArrayJson;
 	}
 
 	public static JsonObject createLayoutOptions(Layout layout) {
@@ -382,9 +509,9 @@ public class GraphView {
 		graphOptionsJsonObject.addProperty("transform", "function( node, pos ){ return pos; }");
 		graphOptionsJsonObject.addProperty("ready", "function(){}");
 		graphOptionsJsonObject.addProperty("stop", "function(){}");
-
 		return graphOptionsJsonObject;
 	}
+	
 
 	public static void show(Path htmlPath) throws IOException, InterruptedException {
 		// TODO set appropriate default height

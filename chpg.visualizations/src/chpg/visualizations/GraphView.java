@@ -189,7 +189,6 @@ public class GraphView {
 			JsonArray itemArray = createMenuJson();
 			JsonObject contextMenuJson = new JsonObject();
 			contextMenuJson.add("menuItems", itemArray);
-			System.out.println("cy.contextMenus({\n"+contextMenuJson.toString()+"});");
 			htmlContents = htmlContents.replace("TEMPLATE_OPTIONS_CONTEXT_TEXT", "cy.contextMenus(\n"+contextMenuJson.toString()+");");
 			htmlContents = htmlContents.replace("TEMPLATE_OPTIONS_CONTEXT_TEXT", "cy.contextMenus({\n" + 
 					"                                    menuItems: [\n" + 
@@ -430,23 +429,33 @@ public class GraphView {
 		itemHide.addProperty("tooltipText","hide");
 		itemHide.addProperty("selector", "*");
 		itemHide.addProperty("onClickFunction", "function ( event ) { var target = event.target || event.cyTarget; target.hide(); }");
-		JsonObject colorBlue = new JsonObject();
-		colorBlue.addProperty("id","changeBlue");
-		colorBlue.addProperty("content", "Change to Blue");
-		colorBlue.addProperty("tooltipText","Change to Blue");
-		colorBlue.addProperty("selector", "*");
-		colorBlue.addProperty("onClickFunction", "function ( event ) { var target = event.target || event.cyTarget; target.css(\"background-color\", \"blue\") ; }");
-		JsonObject colorWhite = new JsonObject();
-		colorWhite.addProperty("id","changeWhite");
-		colorWhite.addProperty("content", "Change to White");
-		colorWhite.addProperty("tooltipText","Change to White");
-		colorWhite.addProperty("selector", "*");
-		colorWhite.addProperty("onClickFunction", "function ( event ) { var target = event.target || event.cyTarget; target.css(\"background-color\", \"white\") ; }");
+		JsonObject colorBlue = changeColorJson("blue");
+//		colorBlue.addProperty("id","changeBlue");
+//		colorBlue.addProperty("content", "Change to Blue");
+//		colorBlue.addProperty("tooltipText","Change to Blue");
+//		colorBlue.addProperty("selector", "*");
+//		colorBlue.addProperty("onClickFunction", "function ( event ) { var target = event.target || event.cyTarget; target.css(\"background-color\", \"blue\") ; }");
+		JsonObject colorWhite = changeColorJson("white");
+//		colorWhite.addProperty("id","changeWhite");
+//		colorWhite.addProperty("content", "Change to White");
+//		colorWhite.addProperty("tooltipText","Change to White");
+//		colorWhite.addProperty("selector", "*");
+//		colorWhite.addProperty("onClickFunction", "function ( event ) { var target = event.target || event.cyTarget; target.css(\"background-color\", \"white\") ; }");
 		menuArrayJson.add(itemHide);
 		menuArrayJson.add(colorBlue);
 		menuArrayJson.add(colorWhite);
 //		System.out.println(menuArrayJson);
 		return menuArrayJson;
+	}
+	
+	public static JsonObject changeColorJson(String colorName) {
+		JsonObject color = new JsonObject();
+		color.addProperty("id","change"+colorName);
+		color.addProperty("content", "Change to "+colorName);
+		color.addProperty("tooltipText","Change to "+colorName);
+		color.addProperty("selector", "*");
+		color.addProperty("onClickFunction", "function ( event ) { var target = event.target || event.cyTarget; target.css(\"background-color\", \""+colorName+"\") ; }");
+		return color;
 	}
 
 	public static JsonObject createLayoutOptions(Layout layout) {

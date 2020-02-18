@@ -508,7 +508,7 @@ public class GraphView {
 		String patternString = "\"function\\s*([A-z0-9]+)?\\s*\\((?:[^)(]+|\\((?:[^)(]+|\\([^)(]*\\))*\\))*\\)\\s*\\{(?:[^}{]+|\\{(?:[^}{]+|\\{[^}{]*\\})*\\})*\\}\"";
 		Pattern pattern = Pattern.compile(patternString);
 		Matcher matcher = pattern.matcher(jsonString);
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 
 		while (matcher.find()) {
 			String toReplace = matcher.group();

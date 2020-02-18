@@ -1,6 +1,7 @@
 package chpg.tests.visualzation;
 
 import java.io.File;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import org.junit.Test;
@@ -11,6 +12,7 @@ import chpg.visualizations.GraphView.Layout;
 import chpg.visualizations.GraphView.Menu;
 import chpg.visualizations.GraphView.Navigator;
 import chpg.visualizations.GraphView.PanZoom;
+
 
 public class TestVisualization {
 
@@ -38,4 +40,5 @@ public class TestVisualization {
 		
 		GraphView.createHTML(graph, dirPath, name, 600, extend, layout, menu, panzoom, navigator);
 	}
+	
 }

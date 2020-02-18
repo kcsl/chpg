@@ -20,6 +20,7 @@ import chpg.graph.Graph;
 import chpg.graph.GraphElementSet;
 import chpg.graph.Node;
 import chpg.graph.schema.SchemaGraph;
+import fi.iki.elonen.util.ServerRunner;
 import io.github.spencerpark.ijava.runtime.Display;
 
 public class GraphView {
@@ -437,19 +438,14 @@ public class GraphView {
 		// Get the htmlContents
 		String htmlContents = new String(Files.readAllBytes(htmlPath));
 		
-		// Create and start a thread for that listens on port and serves htmlContents
+		// Create a server to serve up the HTML contents
 		int port = 8090;
-		Object sync = new Object();
-		HTMLSocketRunner socketRunner = new HTMLSocketRunner(sync, port, htmlContents);
-		Thread thread = new Thread(socketRunner);
-		thread.start();
-
-		// Wait for the SocketServer to start, then display an IFrame connecting to it
-		synchronized (sync) {
-			sync.wait();
-			Display.display("<html><iframe src='http://localhost:" + port + "/' width=\"100%\", height=\""
-					+ verticalSize + "px\" frameBorder=\"0\"></iframe></html>", "text/html");
-		}
+		VisualizationServer server = new VisualizationServer(htmlContents, port);
+		ServerRunner.executeInstance(server);
+		
+		// Display an iFrame in Jupyter that GETs the HTML contents from the server
+		Display.display("<html><iframe src='http://localhost:" + port + "/' width=\"100%\", height=\""
+				+ verticalSize + "px\" frameBorder=\"0\"></iframe></html>", "text/html");
 	}
 	
 	private static String nodeGetFileName(Node node) {

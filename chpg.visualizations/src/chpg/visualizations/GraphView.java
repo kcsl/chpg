@@ -435,8 +435,8 @@ public class GraphView {
 
 	public static void show(Path htmlPath, int verticalSize) throws IOException, InterruptedException {
 		// Get the htmlContents
-		String htmlContents = Files.readString(htmlPath);
-
+		String htmlContents = new String(Files.readAllBytes(htmlPath));
+		
 		// Create and start a thread for that listens on port and serves htmlContents
 		int port = 8090;
 		Object sync = new Object();

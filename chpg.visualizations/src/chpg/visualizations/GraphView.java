@@ -52,7 +52,7 @@ public class GraphView {
 		debug = enabled;
 	}
 
-	public static final int DEFAULT_VERTICAL_SIZE = 1000;
+	public static final int DEFAULT_VERTICAL_SIZE = 600;
 	public static final int DEFAULT_NAVIGATOR_NODES_SIZE = 20;
 	public static final boolean DEFAULT_PANZOOM = true;
 
@@ -74,28 +74,28 @@ public class GraphView {
 
 	public static Path createHTML(Graph graph) throws IOException {
 		Path tempDirectory = Files.createTempDirectory("graph-viewer");
-		return createHTML(graph, tempDirectory, "", DEFAULT_VERTICAL_SIZE, true, Layout.DAGRE, Menu.TEXT,
+		return createHTML(graph, tempDirectory, "", DEFAULT_VERTICAL_SIZE, true, Layout.DAGRE, Menu.NONE,
 				PanZoom.ENABLED, Navigator.DEFAULT);
 	}
 
 	public static Path createHTML(Graph graph, Path directoryPath) throws IOException {
-		return createHTML(graph, directoryPath, "", DEFAULT_VERTICAL_SIZE, true, Layout.DAGRE, Menu.TEXT,
+		return createHTML(graph, directoryPath, "", DEFAULT_VERTICAL_SIZE, true, Layout.DAGRE, Menu.NONE,
 				PanZoom.ENABLED, Navigator.DEFAULT);
 	}
 
 	public static Path createHTML(Graph graph, Path directoryPath, String name) throws IOException {
-		return createHTML(graph, directoryPath, name, DEFAULT_VERTICAL_SIZE, true, Layout.DAGRE, Menu.TEXT,
+		return createHTML(graph, directoryPath, name, DEFAULT_VERTICAL_SIZE, true, Layout.DAGRE, Menu.NONE,
 				PanZoom.ENABLED, Navigator.DEFAULT);
 	}
 
 	public static Path createHTML(Graph graph, Path directoryPath, String name, boolean extend) throws IOException {
-		return createHTML(graph, directoryPath, name, DEFAULT_VERTICAL_SIZE, extend, Layout.DAGRE, Menu.TEXT,
+		return createHTML(graph, directoryPath, name, DEFAULT_VERTICAL_SIZE, extend, Layout.DAGRE, Menu.NONE,
 				PanZoom.ENABLED, Navigator.DEFAULT);
 	}
 
 	public static Path createHTML(Graph graph, Path directoryPath, String name, boolean extend, int verticalSize)
 			throws IOException {
-		return createHTML(graph, directoryPath, name, verticalSize, extend, Layout.DAGRE, Menu.TEXT, PanZoom.ENABLED,
+		return createHTML(graph, directoryPath, name, verticalSize, extend, Layout.DAGRE, Menu.NONE, PanZoom.ENABLED,
 				Navigator.DEFAULT);
 	}
 
@@ -183,105 +183,10 @@ public class GraphView {
 		if (menu.equals(Menu.TEXT)) {
 			sourcesCSS.add(contextMenuCSS);
 			sourcesJS.add(contextMenuJS);
-			// TODO set context menu options
-			// Experimenting
-			//Will create Options for menu, but just starting with basic elements JsonArray MenuOptions = new JsonArray();
-			JsonArray itemArray = createMenuJson();
-			JsonObject contextMenuJson = new JsonObject();
-			contextMenuJson.add("menuItems", itemArray);
-			htmlContents = htmlContents.replace("TEMPLATE_OPTIONS_CONTEXT_TEXT", "cy.contextMenus(\n"+contextMenuJson.toString()+");");
-			htmlContents = htmlContents.replace("TEMPLATE_OPTIONS_CONTEXT_TEXT", "cy.contextMenus({\n" + 
-					"                                    menuItems: [\n" + 
-					"                                        {\n" + 
-					"                                            id: 'remove',\n" + 
-					"                                            content: 'remove',\n" + 
-					"                                            tooltipText: 'remove',\n" + 
-					"                                            image: {src : \"remove.svg\", width : 12, height : 12, x : 6, y : 4},\n" + 
-					"                                            selector: 'node, edge',\n" + 
-					"                                            onClickFunction: function (event) {\n" + 
-					"                                              var target = event.target || event.cyTarget;\n" + 
-					"                                              target.remove();\n" + 
-					"                                            },\n" + 
-					"                                            hasTrailingDivider: true\n" + 
-					"                                          },\n" + 
-					"                                          {\n" + 
-					"                                            id: 'hide',\n" + 
-					"                                            content: 'hide',\n" + 
-					"                                            tooltipText: 'hide',\n" + 
-					"                                            selector: '*',\n" + 
-					"                                            onClickFunction: function (event) {\n" + 
-					"                                              var target = event.target || event.cyTarget;\n" + 
-					"                                              target.hide();\n" + 
-					"                                            },\n" + 
-					"                                            disabled: false\n" + 
-					"                                          },\n" + 
-					"                                          {\n" + 
-					"                                            id: 'add-node',\n" + 
-					"                                            content: 'add node',\n" + 
-					"                                            tooltipText: 'add node',\n" + 
-					"                                            image: {src : \"add.svg\", width : 12, height : 12, x : 6, y : 4},\n" + 
-					"                                            coreAsWell: true,\n" + 
-					"                                            onClickFunction: function (event) {\n" + 
-					"                                              var data = {\n" + 
-					"                                                  group: 'nodes'\n" + 
-					"                                              };\n" + 
-					"                                              \n" + 
-					"                                              var pos = event.position || event.cyPosition;\n" + 
-					"                                              \n" + 
-					"                                              cy.add({\n" + 
-					"                                                  data: data,\n" + 
-					"                                                  position: {\n" + 
-					"                                                      x: pos.x,\n" + 
-					"                                                      y: pos.y\n" + 
-					"                                                  }\n" + 
-					"                                              });\n" + 
-					"                                            }\n" + 
-					"                                          },\n" + 
-					"                                          {\n" + 
-					"                                            id: 'remove-selected',\n" + 
-					"                                            content: 'remove selected',\n" + 
-					"                                            tooltipText: 'remove selected',\n" + 
-					"                                            image: {src : \"remove.svg\", width : 12, height : 12, x : 6, y : 6},\n" + 
-					"                                            coreAsWell: true,\n" + 
-					"                                            onClickFunction: function (event) {\n" + 
-					"                                              cy.$(':selected').remove();\n" + 
-					"                                            }\n" + 
-					"                                          },\n" + 
-					"                                          {\n" + 
-					"                                            id: 'select-all-nodes',\n" +
-					"									         content: 'select all nodes',\n" +
-					"									         selector: 'node',\n" +
-					"									         show: true,\n" +
-					"									         onClickFunction: function (event) {\n" +
-					"									           selectAllOfTheSameType(event.target || event.cyTarget);\n" +
-					"											   \n" +
-					"									           contextMenu.hideMenuItem('select-all-nodes');\n" +
-					"									           contextMenu.showMenuItem('unselect-all-nodes');\n" +
-					"									         }\n" +
-					"                                          },\n" +
-					"										   {\n" +
-					"										     id: 'unselect-all-nodes',\n" +
-					"										     content: 'unselect all nodes',\n" +
-					"										     selector: 'node',\n" +
-					"										     show: false,\n" +
-					"										     onClickFunction: function (event) {\n" +
-					"										       unselectAllOfTheSameType(event.target || event.cyTarget);\n" +
-					"											  \n" +
-					"										       contextMenu.showMenuItem('select-all-nodes');\n" +
-					"										       contextMenu.hideMenuItem('unselect-all-nodes');\n" +
-					"										     }\n" +
-					"										   },\n" +	
-					"                                          {\n" + 
-					"                                            id: 'select-all-edges',\n" + 
-					"                                            content: 'select all edges',\n" + 
-					"                                            tooltipText: 'select all edges',\n" + 
-					"                                            selector: 'edge',\n" + 
-					"                                            onClickFunction: function (event) {\n" + 
-					"                                              selectAllOfTheSameType(event.target || event.cyTarget);\n" + 
-					"                                            }\n" + 
-					"                                          }\n" + 
-					"                                        ]\n" + 
-					"                                      });");
+
+			JsonObject contextMenuOptions = createMenuJson();
+			htmlContents = htmlContents.replace("TEMPLATE_OPTIONS_CONTEXT_TEXT",
+					"cy.contextMenus(\n" + contextMenuOptions.toString() + "\n);");
 		}
 
 		// Add sources for wheel menu
@@ -363,14 +268,11 @@ public class GraphView {
 
 			if (node.tags().contains("XCSG.ControlFlowLoopCondition")
 					|| node.tags().contains("XCSG.ControlFlowIfCondition")) {
-				// Set diamond shape for loop conditions and if statements
-				dataJson.addProperty("shape", "diamond");
-				// Fix width issue for diamond nodes
-				dataJson.addProperty("width", nodeName.length() * 10);	
+				dataJson.addProperty("backgroundcolor", "#e8ae58");
+				// dataJson.addProperty("shape", "diamond");
 			} else {
-				// Set default node style
-				dataJson.addProperty("shape", "round-rectangle");
-				dataJson.addProperty("width", "label");
+				dataJson.addProperty("backgroundcolor", "#34c2db");
+				// dataJson.addProperty("shape", "round-rectangle");
 			}
 
 			// If extend is set to true and this node has, add parent attribute to data and
@@ -420,44 +322,45 @@ public class GraphView {
 
 		return edgesJsonArray;
 	}
-	
-	public static JsonArray createMenuJson() {
-		JsonArray menuArrayJson = new JsonArray();
-		JsonObject itemHide = new JsonObject();
-		itemHide.addProperty("id","hide");
-		itemHide.addProperty("content", "hide");
-		itemHide.addProperty("tooltipText","hide");
-		itemHide.addProperty("selector", "*");
-		itemHide.addProperty("onClickFunction", "function ( event ) { var target = event.target || event.cyTarget; target.hide(); }");
-		JsonObject colorBlue = changeColorJson("blue");
-//		colorBlue.addProperty("id","changeBlue");
-//		colorBlue.addProperty("content", "Change to Blue");
-//		colorBlue.addProperty("tooltipText","Change to Blue");
-//		colorBlue.addProperty("selector", "*");
-//		colorBlue.addProperty("onClickFunction", "function ( event ) { var target = event.target || event.cyTarget; target.css(\"background-color\", \"blue\") ; }");
-		JsonObject colorWhite = changeColorJson("white");
-//		colorWhite.addProperty("id","changeWhite");
-//		colorWhite.addProperty("content", "Change to White");
-//		colorWhite.addProperty("tooltipText","Change to White");
-//		colorWhite.addProperty("selector", "*");
-//		colorWhite.addProperty("onClickFunction", "function ( event ) { var target = event.target || event.cyTarget; target.css(\"background-color\", \"white\") ; }");
-		menuArrayJson.add(itemHide);
-		menuArrayJson.add(colorBlue);
-		menuArrayJson.add(colorWhite);
-//		System.out.println(menuArrayJson);
-		return menuArrayJson;
-	}
-	
-	public static JsonObject changeColorJson(String colorName) {
-		JsonObject color = new JsonObject();
-		color.addProperty("id","change"+colorName);
-		color.addProperty("content", "Change to "+colorName);
-		color.addProperty("tooltipText","Change to "+colorName);
-		color.addProperty("selector", "*");
-		color.addProperty("onClickFunction", "function ( event ) { var target = event.target || event.cyTarget; target.css(\"background-color\", \""+colorName+"\") ; }");
-		return color;
+
+
+	public static JsonObject createMenuJson() {
+		// Create an array of all menu items
+		JsonArray menuItemsArray = new JsonArray();
+
+		// Create hide and change color buttons
+		JsonObject hideButton = new JsonObject();
+		hideButton.addProperty("id", "hide");
+		hideButton.addProperty("content", "hide");
+		hideButton.addProperty("tooltipText", "hide");
+		hideButton.addProperty("selector", "*");
+		hideButton.addProperty("onClickFunction",
+				"function(event) {var target = event.target || event.cyTarget; target.hide();}");
+		JsonObject colorBlueButton = changeColorJson("blue");
+		JsonObject colorWhiteButton = changeColorJson("white");
+		menuItemsArray.add(hideButton);
+		menuItemsArray.add(colorBlueButton);
+		menuItemsArray.add(colorWhiteButton);
+
+		// Return the menu within a JSON object
+		JsonObject contextMenu = new JsonObject();
+		contextMenu.add("menuItems", menuItemsArray);
+		return contextMenu;
 	}
 
+	public static JsonObject changeColorJson(String color) {
+		// Create a button for changing the node's color to color
+		JsonObject colorButton = new JsonObject();
+		colorButton.addProperty("id", "change" + color);
+		colorButton.addProperty("content", "Change to " + color);
+		colorButton.addProperty("tooltipText", "Change to " + color);
+		colorButton.addProperty("selector", "*");
+		colorButton.addProperty("onClickFunction",
+				"function(event) { var target = event.target || event.cyTarget; target.css(\"background-color\", \""
+						+ color + "\"); }");
+		return colorButton;
+	}
+	
 	public static JsonObject createLayoutOptions(Layout layout) {
 		// Create a JSON object of graph options for the given layout type
 		JsonObject graphOptionsJsonObject = new JsonObject();
@@ -518,9 +421,9 @@ public class GraphView {
 		graphOptionsJsonObject.addProperty("transform", "function( node, pos ){ return pos; }");
 		graphOptionsJsonObject.addProperty("ready", "function(){}");
 		graphOptionsJsonObject.addProperty("stop", "function(){}");
+
 		return graphOptionsJsonObject;
 	}
-	
 
 	public static void show(Path htmlPath) throws IOException, InterruptedException {
 		// TODO set appropriate default height

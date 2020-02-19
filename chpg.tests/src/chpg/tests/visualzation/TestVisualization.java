@@ -4,6 +4,8 @@ import java.io.File;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import org.junit.Test;
 import chpg.graph.Graph;
 import chpg.io.GraphIO;
@@ -26,7 +28,7 @@ public class TestVisualization {
 		Graph graph = GraphIO.importGraph(serializedGraph);
 
 		// Create path to directory where HTML graph will be written
-		Path dirPath = Path.of("C:/Graphs/TestNew1");
+		Path dirPath = Paths.get("C:/Graphs/TestNew1");
 
 		// Create the HTML
 		String name = "My Test Graph";

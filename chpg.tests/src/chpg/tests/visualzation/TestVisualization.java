@@ -24,7 +24,7 @@ public class TestVisualization {
 		Graph graph = GraphIO.importGraph(serializedGraph);
 
 		// Create path to directory where HTML graph will be written
-		Path dirPath = Path.of("C:/Graphs/TestNew1");
+		Path dirPath = Paths.get("C:/Graphs/TestNew1");
 
 		// Create the HTML
 		String name = "My Test Graph";

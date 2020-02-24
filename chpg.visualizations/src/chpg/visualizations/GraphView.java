@@ -2,7 +2,6 @@ package chpg.visualizations;
 
 import java.lang.String;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -50,6 +49,8 @@ public class GraphView {
 
 	private static boolean debug = false;
 
+	private static VisualizationServer visualizationServer = null;;
+	
 	public static void setDebug(boolean enabled) {
 		debug = enabled;
 	}
@@ -73,67 +74,39 @@ public class GraphView {
 	public enum Navigator {
 		DEFAULT, ENABLED, DISABLED
 	}
-
-	public static Path createHTML(Graph graph) throws IOException {
+	
+	public static String createGraphHTML(Graph graph) throws IOException {
 		Path tempDirectory = Files.createTempDirectory("graph-viewer");
-		return createHTML(graph, tempDirectory, "", DEFAULT_VERTICAL_SIZE, true, Layout.DAGRE, Menu.NONE,
+		return createGraphHTML(graph, "", DEFAULT_VERTICAL_SIZE, true, Layout.DAGRE, Menu.NONE,
 				PanZoom.ENABLED, Navigator.DEFAULT);
 	}
 
-	public static Path createHTML(Graph graph, Path directoryPath) throws IOException {
-		return createHTML(graph, directoryPath, "", DEFAULT_VERTICAL_SIZE, true, Layout.DAGRE, Menu.NONE,
+	public static String createGraphHTML(Graph graph, String name) throws IOException {
+		return createGraphHTML(graph, name, DEFAULT_VERTICAL_SIZE, true, Layout.DAGRE, Menu.NONE,
 				PanZoom.ENABLED, Navigator.DEFAULT);
 	}
 
-	public static Path createHTML(Graph graph, Path directoryPath, String name) throws IOException {
-		return createHTML(graph, directoryPath, name, DEFAULT_VERTICAL_SIZE, true, Layout.DAGRE, Menu.NONE,
+	public static String createGraphHTML(Graph graph, String name, boolean extend) throws IOException {
+		return createGraphHTML(graph, name, DEFAULT_VERTICAL_SIZE, extend, Layout.DAGRE, Menu.NONE,
 				PanZoom.ENABLED, Navigator.DEFAULT);
 	}
 
-	public static Path createHTML(Graph graph, Path directoryPath, String name, boolean extend) throws IOException {
-		return createHTML(graph, directoryPath, name, DEFAULT_VERTICAL_SIZE, extend, Layout.DAGRE, Menu.NONE,
-				PanZoom.ENABLED, Navigator.DEFAULT);
-	}
-
-	public static Path createHTML(Graph graph, Path directoryPath, String name, boolean extend, int verticalSize)
+	public static String createGraphHTML(Graph graph, String name, boolean extend, int verticalSize)
 			throws IOException {
-		return createHTML(graph, directoryPath, name, verticalSize, extend, Layout.DAGRE, Menu.NONE, PanZoom.ENABLED,
+		return createGraphHTML(graph, name, verticalSize, extend, Layout.DAGRE, Menu.NONE, PanZoom.ENABLED,
 				Navigator.DEFAULT);
 	}
 
-	public static Path createHTML(Graph graph, Path directoryPath, String name, int verticalSize, boolean extend,
+	public static String createGraphHTML(Graph graph, String name, int verticalSize, boolean extend,
 			Layout layout, Menu menu, PanZoom panzoom, Navigator navigator) throws IOException {
-		// Open the directory as a file
-		File graphViewerDirectory = directoryPath.toFile();
-
-		// If in debug mode, print path to directory of HTML graph
-		if (debug)
-			System.out.println("DEBUG: " + graphViewerDirectory.getAbsolutePath());
-
-		// Create File object for the copy of this resource file in graphViewerDirectory
-		String htmlRes = "templates/index.html";
-		File resourceFile = new File(graphViewerDirectory.getAbsolutePath() + File.separator
-				+ htmlRes.replaceFirst("templates/", "").replace("/", File.separator));
-
-		// Make the parent directory for the HTML graph if it doesn't exist
-		if (!resourceFile.getParentFile().exists())
-			resourceFile.getParentFile().mkdirs();
-
-		// Open the HTML template file and read its contents
-		FileWriter fw = new FileWriter(resourceFile);
-
 		// Open the HTML template file and read its contents
 		String htmlContents = readResource("templates/index.html" + ".template");
 
 		// Format the HTML file
 		htmlContents = formatHTML(htmlContents, graph, name, verticalSize, extend, layout, menu, panzoom, navigator);
 
-		// Write the formatted HTML to HTML document being created
-		fw.write(htmlContents);
-		fw.close();
-
-		// Return the path of the HTML
-		return resourceFile.toPath();
+		// Return the HTML contents
+		return htmlContents;
 	}
 
 	public static String formatHTML(String htmlContents, Graph graph, String name, int verticalSize, boolean extend,
@@ -429,20 +402,21 @@ public class GraphView {
 		return graphOptions;
 	}
 
-	public static void show(Path htmlPath) throws IOException, InterruptedException {
-		// TODO set appropriate default height
-		show(htmlPath, 500);
+	public static void show(String htmlContents) throws IOException, InterruptedException {
+		show(htmlContents, 500);
 	}
-
-	public static void show(Path htmlPath, int verticalSize) throws IOException, InterruptedException {
-		// Get the htmlContents
-		String htmlContents = new String(Files.readAllBytes(htmlPath));
+	
+	public static void show(String htmlContents, int verticalSize) throws InterruptedException, IOException {
+		// If one wasn't already started, create a server to serve up the HTML contents
+		int port = 1313;
+		if (visualizationServer == null) {
+			visualizationServer  = new VisualizationServer(port);
+			visualizationServer.start();
+		}
 		
-		// Create a server to serve up the HTML contents
-		int port = 8090;
-		VisualizationServer server = new VisualizationServer(htmlContents, port);
-		ServerRunner.executeInstance(server);
-		
+		// Set the content the server will serve up
+		visualizationServer.htmlContents = htmlContents;
+				
 		// Display an iFrame in Jupyter that GETs the HTML contents from the server
 		Display.display("<html><iframe src='http://localhost:" + port + "/' width=\"100%\", height=\""
 				+ verticalSize + "px\" frameBorder=\"0\"></iframe></html>", "text/html");

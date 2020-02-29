@@ -1,0 +1,94 @@
+<html>
+
+<head>
+<title>TEMPLATE_GRAPH_NAME</title> 
+TEMPLATE_CSS_SOURCES
+TEMPLATE_JS_SOURCES
+</head>
+<style>
+#cy {
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+}
+</style>
+
+<body>
+	<div id="cy"></div>
+	<script>
+		console.log(document.getElementById("cy"));
+		var cytoscapeOptions = {
+			container : document.getElementById("cy"),
+			// layout options
+			layout : TEMPLATE_LAYOUT_OPTIONS,
+			// elements (graph nodes and edges)
+			elements : TEMPLATE_ELEMENTS,
+			style : [ {
+				selector : "node",
+				style : {
+					"label" : "data(name)",
+					"shape" : "data(shape)",
+					"background-color": "#000000",
+					"width" : "data(width)",
+					"height" : "label",
+					"padding" : "10px",
+					"text-wrap" : "wrap",
+					"text-max-width" : 50,
+					"text-opacity" : 1,
+					"background-opacity" : 1,
+					"border-width" : 2,
+					"border-color" : "black",
+					"text-valign" : "center",
+					"text-halign" : "center",
+				}
+			}, {
+				selector : ":container",
+				style : {
+					"background-color" : "#33aff3", // light blue 2
+					"background-opacity" : .15,
+					"padding" : 24,
+					"text-valign" : "top",
+					"text-halign" : "center",
+					"text-margin-y" : 20, // positive moves down
+					"text-margin-x" : 0, // positive moves right
+				}
+			}, {
+				selector : "node:selected",
+				style : {
+					"background-color" : "yellow"
+				}
+			}, {
+				selector : "edge",
+				style : {
+					"label" : "data(name)",
+					"width" : 1,
+					"curve-style" : "bezier",
+					"target-arrow-shape" : "triangle",
+					"line-color" : "black",
+					"target-arrow-color" : "black",
+					//"edge-text-rotation": "autorotate",
+					"text-margin-x" : 20,
+					"text-margin-y" : 0,
+					"text-wrap" : "wrap"
+				}
+			}, {
+				selector : "edge:selected",
+				style : {
+					"line-color" : "#33aff3", // light blue 2
+					"target-arrow-color" : "#33aff3" // light blue 2
+				}
+			}, ]
+		};
+
+		var cy = cytoscape(cytoscapeOptions);
+
+		TEMPLATE_OPTIONS_PANZOOM
+		TEMPLATE_OPTIONS_NAVIGATOR
+		TEMPLATE_OPTIONS_CONTEXT_TEXT
+		TEMPLATE_OPTIONS_CONTEXT_WHEEL
+	</script>
+</body>
+
+</html>

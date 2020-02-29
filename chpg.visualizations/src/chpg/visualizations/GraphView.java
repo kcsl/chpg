@@ -10,6 +10,16 @@ import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonArray;
+
 import chpg.graph.Edge;
 import chpg.graph.Graph;
 import chpg.graph.Node;
@@ -287,6 +297,138 @@ public class GraphView {
 				// work around for unresolved security policies: https://stackoverflow.com/a/52338192/475329
 				Display.display("<html><iframe src='" + graphViewerDirectory.getAbsolutePath() + File.separator 
 						+ "index.html' width=\"100%\", height=\"" + verticalSize + "px\" frameBorder=\"0\"></iframe></html>", "text/html");
+
+
+	public static JsonArray createNodeJson(GraphElementSet<Node> nodes, Graph containsGraph, boolean extend) {
+		// Create a list of JSON representations of the graph nodes
+		JsonArray nodesArray = new JsonArray();
+
+		//start project node
+		Node tempNode = nodes.iterator().next();
+		String tempNodePath = nodeGetPath(tempNode);
+		String projectName = nodeGetProjectName(tempNodePath);
+		
+		JsonObject projectNodeObject = new JsonObject();
+		
+		JsonObject projectDataObject = new JsonObject();
+		projectDataObject.addProperty("id", "projectNode");
+		projectDataObject.addProperty("name", projectName);
+		projectDataObject.addProperty("shape", "round-rectangle");
+		
+		JsonArray classesJson = new JsonArray();
+		classesJson.add("container");
+		projectNodeObject.add("classes", classesJson);
+				
+		projectNodeObject.add("data", projectDataObject);
+
+		nodesArray.add(projectNodeObject);
+		//end project node
+
+		//start function (file) node
+		String tempFileName = nodeGetFileName(tempNodePath);
+		
+		JsonObject functionNodeObject = new JsonObject();
+		
+		JsonObject functionDataObject = new JsonObject();
+		projectDataObject.addProperty("id", tempFileName);
+		projectDataObject.addProperty("name", tempFileName);
+		projectDataObject.addProperty("shape", "round-rectangle");
+		projectDataObject.addProperty("parent", "projectNode");
+		classesJson = new JsonArray();
+		classesJson.add("container");
+		projectNodeObject.add("classes", classesJson);
+				
+		projectNodeObject.add("data", projectDataObject);
+
+		nodesArray.add(functionNodeObject);
+		//end function (file) node
+		
+		String lastFunctionName = tempFileName;
+		
+		for (Node node : nodes) {
+			// Get the escaped name of the nodes if it has a name
+			String nodeName = node.hasName() ? escapeSchemaChars(node.getName()) : "";
+			
+			String nodePath = nodeGetPath(node);
+			String fileName = nodeGetFileName(nodePath);
+			
+			// Get the parent of the node if it exists
+			// NOTE: this is looking for the predecessor, not the container node
+			//Node parentNode = containsGraph.predecessors(node).one();
+			
+			//Node parentNode = fileName;
+			
+			// Create the JSON for the node
+			JsonObject nodeObject = new JsonObject();
+
+			// Add the basic data attribute
+			JsonObject dataObject = new JsonObject();
+			dataObject.addProperty("id", "n" + node.getAddress());
+			dataObject.addProperty("name", nodeName);
+
+			// Set styles dependent on node type
+			if (node.tags().contains("XCSG.ControlFlowLoopCondition")
+					|| node.tags().contains("XCSG.ControlFlowIfCondition")) {
+				// Set diamond shape for loop conditions and if statements
+				dataObject.addProperty("shape", "diamond");
+				// Fix width issue for diamond nodes
+				dataObject.addProperty("width", nodeName.length() * 10);
+			} else {
+				// Set default node style
+				dataObject.addProperty("shape", "round-rectangle");
+				dataObject.addProperty("width", "label");
+			}
+
+			// If extend is set to true and this node has, add parent attribute to data and
+			// add classes attribute
+//			if (extend && parentNode == null) {
+//				dataObject.addProperty("parent", "n" + node.getAddress());
+//
+//				//JsonArray classesJson = new JsonArray();
+//				classesJson = new JsonArray();
+//				classesJson.add("container");
+//				nodeObject.add("classes", classesJson);
+//			}			
+			dataObject.addProperty("parent", lastFunctionName);
+
+			//JsonArray classesJson = new JsonArray();
+			classesJson = new JsonArray();
+			
+			classesJson.add("container");
+			nodeObject.add("classes", classesJson);
+			nodeObject.add("data", dataObject);
+
+			// Add the node to the array of nodes
+			nodesArray.add(nodeObject);
+		}
+
+		return nodesArray;
+	}
+
+	public static JsonArray createEdgesJson(GraphElementSet<Edge> edges, Graph containsGraph) {
+		// Create a list of JSON representations of the graph edges
+		JsonArray edgesArray = new JsonArray();
+
+		for (Edge edge : edges) {
+			// If the edge is in containsGraph, add it to the list of edges
+			if (!containsGraph.edges().contains(edge)) {
+				// Get the escaped name of the edge if it has a name
+				String edgeName = edge.hasName() ? escapeSchemaChars(edge.getName()) : "";
+
+				// Create the JSON for the edge
+				JsonObject edgeObject = new JsonObject();
+
+				// Create the data attribute for the edge and add it to edgeJson
+				JsonObject dataJson = new JsonObject();
+				dataJson.addProperty("id", edge.getAddress());
+				dataJson.addProperty("name", edgeName);
+				dataJson.addProperty("source", "n" + edge.from().getAddress());
+				dataJson.addProperty("target", "n" + edge.to().getAddress());
+				edgeObject.add("data", dataJson);
+
+				// Add the edge to the array of edges
+				edgesArray.add(edgeObject);
+
 			}
 		} catch (Throwable t) {
 			StringWriter sw = new StringWriter();
@@ -296,6 +438,58 @@ public class GraphView {
 		}
 	}
 	
+
+	//Gets the path of a node
+	private static String nodeGetPath(Node node) {
+		
+		String sourceAttribute = "XCSG.ModelElement.sourceCorrespondence";
+		
+		if(node.attributes().containsKey(sourceAttribute)) {
+			String nodePath = (String) node.attributes().get(sourceAttribute);
+			return nodePath;
+		}
+		else {
+			return null;
+		}
+	}
+	
+	//Parses a node's path to find the name of the file it is in
+	private static String nodeGetFileName(String nodePath) {
+		
+		int end = nodePath.indexOf(",");
+		nodePath = nodePath.substring(0,end);
+		String filename = new File(nodePath).getName();
+			
+		return filename;
+		
+	}
+	//Parses a node's path to find the name of the project it is in
+	//This assumes the file name is the name of the function the node is in. Need a better solution.
+	private static String fileGetProjectName(String nodePath) {
+
+		int start = nodePath.indexOf("/");
+		String temp = nodePath.substring(start+1,nodePath.length());
+		int end = temp.indexOf("/");
+		String projectName = temp.substring(0,end);
+		
+		return projectName;
+		
+	}
+	
+	//Parses a node's path to find the name of the project it is in
+	//This assumes that the every node in the graph is in the same project
+	private static String nodeGetProjectName(String nodePath) {
+
+		int start = nodePath.indexOf("/");
+		String temp = nodePath.substring(start+1,nodePath.length());
+		int end = temp.indexOf("/");
+		String projectName = temp.substring(0,end);
+		
+		return projectName;
+		
+	}
+	
+
 	private static String readResource(String path) throws IOException {
 		InputStream inputStream = GraphView.class.getResourceAsStream(path); 
 		if(inputStream == null) {

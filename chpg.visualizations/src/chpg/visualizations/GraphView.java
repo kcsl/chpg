@@ -250,15 +250,63 @@ public class GraphView {
 		// Create a list of JSON representations of the graph nodes
 		JsonArray nodesArray = new JsonArray();
 
+		//start project node
+		Node tempNode = nodes.iterator().next();
+		String tempNodePath = nodeGetPath(tempNode);
+		String projectName = nodeGetProjectName(tempNodePath);
+		
+		JsonObject projectNodeObject = new JsonObject();
+		
+		JsonObject projectDataObject = new JsonObject();
+		projectDataObject.addProperty("id", "projectNode");
+		projectDataObject.addProperty("name", projectName);
+		projectDataObject.addProperty("shape", "round-rectangle");
+		projectDataObject.addProperty("width", "");
+		projectDataObject.addProperty("parent", "projectNode");
+		
+		JsonArray classesJson = new JsonArray();
+		classesJson.add("container");
+		projectNodeObject.add("classes", classesJson);
+				
+		projectNodeObject.add("data", projectDataObject);
+
+		nodesArray.add(projectNodeObject);
+		//end project node
+
+		//start function (file) node
+		String tempFileName = nodeGetFileName(tempNodePath);
+		
+		JsonObject functionNodeObject = new JsonObject();
+		
+		JsonObject functionDataObject = new JsonObject();
+		functionDataObject.addProperty("id", tempFileName);
+		functionDataObject.addProperty("name", tempFileName);
+		functionDataObject.addProperty("shape", "round-rectangle");
+		functionDataObject.addProperty("width", "");
+		functionDataObject.addProperty("parent", "projectNode");
+		classesJson = new JsonArray();
+		classesJson.add("container");
+		functionNodeObject.add("classes", classesJson);
+				
+		functionNodeObject.add("data", functionDataObject);
+
+		nodesArray.add(functionNodeObject);
+		//end function (file) node
+		
+		String lastFunctionName = tempFileName;
+		
 		for (Node node : nodes) {
 			// Get the escaped name of the nodes if it has a name
 			String nodeName = node.hasName() ? escapeSchemaChars(node.getName()) : "";
-
-			// Get the parent of the node if it exists
-			Node parentNode = containsGraph.predecessors(node).one();
 			
-			//Get the file name that contains this node
-			String fileName = nodeGetFileName(node);
+			String nodePath = nodeGetPath(node);
+			String fileName = nodeGetFileName(nodePath);
+			
+			// Get the parent of the node if it exists
+			// NOTE: this is looking for the predecessor, not the container node
+			//Node parentNode = containsGraph.predecessors(node).one();
+			
+			//Node parentNode = fileName;
 			
 			// Create the JSON for the node
 			JsonObject nodeObject = new JsonObject();
@@ -283,13 +331,21 @@ public class GraphView {
 
 			// If extend is set to true and this node has, add parent attribute to data and
 			// add classes attribute
-			if (extend && parentNode == null) {
-				dataObject.addProperty("parent", "n" + node.getAddress());
+//			if (extend && parentNode == null) {
+//				dataObject.addProperty("parent", "n" + node.getAddress());
+//
+//				//JsonArray classesJson = new JsonArray();
+//				classesJson = new JsonArray();
+//				classesJson.add("container");
+//				nodeObject.add("classes", classesJson);
+//			}			
+			dataObject.addProperty("parent", lastFunctionName);
 
-				JsonArray classesJson = new JsonArray();
-				classesJson.add("container");
-				nodeObject.add("classes", classesJson);
-			}			
+			//JsonArray classesJson = new JsonArray();
+			classesJson = new JsonArray();
+			
+			classesJson.add("container");
+			nodeObject.add("classes", classesJson);
 			nodeObject.add("data", dataObject);
 
 			// Add the node to the array of nodes
@@ -435,7 +491,7 @@ public class GraphView {
 
 	public static void show(Path htmlPath, int verticalSize) throws IOException, InterruptedException {
 		// Get the htmlContents
-		String htmlContents = Files.readString(htmlPath);
+		String htmlContents = htmlPath.toString();
 
 		// Create and start a thread for that listens on port and serves htmlContents
 		int port = 8090;
@@ -451,23 +507,53 @@ public class GraphView {
 					+ verticalSize + "px\" frameBorder=\"0\"></iframe></html>", "text/html");
 		}
 	}
-	
-	private static String nodeGetFileName(Node node) {
-		// Get the filename of the given node
+	//Gets the path of a node
+	private static String nodeGetPath(Node node) {
+		
 		String sourceAttribute = "XCSG.ModelElement.sourceCorrespondence";
 		
 		if(node.attributes().containsKey(sourceAttribute)) {
-			String pathName = (String) node.attributes().get(sourceAttribute);
-			
-			int end = pathName.indexOf(",");
-			pathName = pathName.substring(0,end);
-			
-			String filename = new File(pathName).getName();
-			
-			return filename;
+			String nodePath = (String) node.attributes().get(sourceAttribute);
+			return nodePath;
 		}
+		else {
+			return null;
+		}
+	}
+	//Parses a node's path to find the name of the file it is in
+	private static String nodeGetFileName(String nodePath) {
 		
-		return null;
+		int end = nodePath.indexOf(",");
+		nodePath = nodePath.substring(0,end);
+		String filename = new File(nodePath).getName();
+			
+		return filename;
+		
+	}
+	//Parses a node's path to find the name of the project it is in
+	//This assumes the file name is the name of the function the node is in. Need a better solution.
+	private static String fileGetProjectName(String nodePath) {
+
+		int start = nodePath.indexOf("/");
+		String temp = nodePath.substring(start+1,nodePath.length());
+		int end = temp.indexOf("/");
+		String projectName = temp.substring(0,end);
+		
+		return projectName;
+		
+	}
+	
+	//Parses a node's path to find the name of the project it is in
+	//This assumes that the every node in the graph is in the same project
+	private static String nodeGetProjectName(String nodePath) {
+
+		int start = nodePath.indexOf("/");
+		String temp = nodePath.substring(start+1,nodePath.length());
+		int end = temp.indexOf("/");
+		String projectName = temp.substring(0,end);
+		
+		return projectName;
+		
 	}
 	
 

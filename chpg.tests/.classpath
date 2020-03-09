@@ -6,5 +6,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/chpg.graph"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/chpg.algorithms"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/chpg.io"/>
+	<classpathentry kind="src" path="/chpg.visualizations"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

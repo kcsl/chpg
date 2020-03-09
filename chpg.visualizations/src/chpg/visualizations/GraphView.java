@@ -363,59 +363,6 @@ public class GraphView {
 		return projectName;
 	}
 
-//	public static JsonArray createNodeJson(GraphElementSet<Node> nodes, Graph containsGraph, boolean extend) {
-//		// Create a list of JSON representations of the graph nodes
-//		JsonArray nodesArray = new JsonArray();
-//
-//		for (Node node : nodes) {
-//			// Get the escaped name of the nodes if it has a name
-//			String nodeName = node.hasName() ? escapeSchemaChars(node.getName()) : "";
-//
-//			// Get the parent of the node if it exists
-//			Node parentNode = containsGraph.predecessors(node).one();
-//			
-//			//Get the file name that contains this node
-//			String fileName = nodeGetFileName(node);
-//			
-//			// Create the JSON for the node
-//			JsonObject nodeObject = new JsonObject();
-//
-//			// Add the basic data attribute
-//			JsonObject dataObject = new JsonObject();
-//			dataObject.addProperty("id", "n" + node.getAddress());
-//			dataObject.addProperty("name", nodeName);
-//
-//			// Set styles dependent on node type
-//			if (node.tags().contains("XCSG.ControlFlowLoopCondition")
-//					|| node.tags().contains("XCSG.ControlFlowIfCondition")) {
-//				// Set diamond shape for loop conditions and if statements
-//				dataObject.addProperty("shape", "diamond");
-//				// Fix width issue for diamond nodes
-//				dataObject.addProperty("width", nodeName.length() * 10);
-//			} else {
-//				// Set default node style
-//				dataObject.addProperty("shape", "round-rectangle");
-//				dataObject.addProperty("width", "label");
-//			}
-//
-//			// If extend is set to true and this node has, add parent attribute to data and
-//			// add classes attribute
-//			if (extend && parentNode == null) {
-//				dataObject.addProperty("parent", "n" + node.getAddress());
-//
-//				JsonArray classesJson = new JsonArray();
-//				classesJson.add("container");
-//				nodeObject.add("classes", classesJson);
-//			}			
-//			nodeObject.add("data", dataObject);
-//
-//			// Add the node to the array of nodes
-//			nodesArray.add(nodeObject);
-//		}
-//
-//		return nodesArray;
-//	}
-
 	public static JsonArray createEdgesJson(GraphElementSet<Edge> edges, Graph containsGraph) {
 		// Create a list of JSON representations of the graph edges
 		JsonArray edgesArray = new JsonArray();
@@ -449,19 +396,25 @@ public class GraphView {
 		// Create an array of all menu items
 		JsonArray menuItemsArray = new JsonArray();
 
-		// Create hide and change color buttons
+		// Create hide menu button
 		JsonObject hideButton = new JsonObject();
 		hideButton.addProperty("id", "hide");
-		hideButton.addProperty("content", "hide");
-		hideButton.addProperty("tooltipText", "hide");
+		hideButton.addProperty("content", "Hide Node");
+		hideButton.addProperty("tooltipText", "Hide Node");
 		hideButton.addProperty("selector", "*");
 		hideButton.addProperty("onClickFunction",
 				"function(event) {var target = event.target || event.cyTarget; target.hide();}");
-		JsonObject colorBlueButton = changeColorJson("blue");
-		JsonObject colorWhiteButton = changeColorJson("white");
 		menuItemsArray.add(hideButton);
-		menuItemsArray.add(colorBlueButton);
-		menuItemsArray.add(colorWhiteButton);
+		
+		// Create and add color change buttons
+		// Light red
+		menuItemsArray.add(createChangeColorButtonJson("Red", "#fa695f"));
+		// Light orange
+		menuItemsArray.add(createChangeColorButtonJson("Orange", "#fab45f"));
+		// Light green
+		menuItemsArray.add(createChangeColorButtonJson("Green", "#6ffa5f"));
+		// Light purple
+		menuItemsArray.add(createChangeColorButtonJson("Purple", "#af5ffa"));
 
 		// Return the menu within a JSON object
 		JsonObject contextMenu = new JsonObject();
@@ -469,16 +422,16 @@ public class GraphView {
 		return contextMenu;
 	}
 
-	public static JsonObject changeColorJson(String color) {
+	public static JsonObject createChangeColorButtonJson(String colorName, String hexCode) {
 		// Create a button for changing the node's color to color
 		JsonObject colorButton = new JsonObject();
-		colorButton.addProperty("id", "change" + color);
-		colorButton.addProperty("content", "Change to " + color);
-		colorButton.addProperty("tooltipText", "Change to " + color);
+		colorButton.addProperty("id", "changeTo" + colorName);
+		colorButton.addProperty("content", "Change Node Color to " + colorName);
+		colorButton.addProperty("tooltipText", "Change Node Color to " + colorName);
 		colorButton.addProperty("selector", "*");
 		colorButton.addProperty("onClickFunction",
 				"function(event) { var target = event.target || event.cyTarget; target.css(\"background-color\", \""
-						+ color + "\"); }");
+						+ hexCode + "\"); }");
 		return colorButton;
 	}
 
